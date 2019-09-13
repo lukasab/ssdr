@@ -1,0 +1,5 @@
+Input/*.png
+Output/label.txt
+
+.python-version
+.DS_Store
