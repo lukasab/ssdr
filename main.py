@@ -77,6 +77,15 @@ PARSER.add_argument(
     type=str,
 )
 
+PARSER.add_argument(
+    "-sp",
+    "--screenPoints",
+    help="Want to give screen points position? True or False\
+          [top_left, top_right, bottom_right, bottom_left]",
+    default="False",
+    type=str,
+)
+
 ARGS = vars(PARSER.parse_args())
 HSVL = np.array(ARGS["lowRangeColor"], np.uint8)
 HSVH = np.array(ARGS["highRangeColor"], np.uint8)
@@ -470,8 +479,8 @@ def find_digits_value(digits_cnts, image):
         (x_beginning, y_bottom, width, height) = cv2.boundingRect(digit_cnt)
         if width < 50 and height > 80:
             x_final = x_beginning + width
-            x_beginning = x_final - round(width * 3.9)
             width = round(width * 3.9)
+            x_beginning = x_final - width
             if x_beginning < 0:
                 x_beginning = 0
                 width = x_final
@@ -533,14 +542,29 @@ def save_value(img_res, digits_value_str):
     with open("Output/label.txt", "a") as label_file:
         label_file.write(file_save + " " + digits_value_str + "\n")
 
+def ask_screen_points(img_res):
+    """Ask the user the four points of where the screen is and do a 
+       four point transform"""
+    top_left = (float(input("X Top Left: ")), float(input("Y Top Left: ")))
+    top_right = (float(input("X Top Right: ")), float(input("Y Top Right: ")))
+    bottom_right = (float(input("X Bottom Right: ")), float(input("Y Bottom Right: ")))
+    bottom_left = (float(input("X Bottom Left: ")), float(input("Y Bottom Left: ")))
+    screen_box = np.array(
+        [top_left, top_right, bottom_right, bottom_left],
+        dtype="float32",
+    )
+    return four_point_transform(img_res, np.reshape(screen_box, (4, 2)))
 
 DEBUG = str2bool(ARGS["debug"])
-
+SCREENPOINT= str2bool(ARGS["screenPoints"])
 
 def main():
     """Control program flow"""
     img_res = open_resize_image(RFACTOR)
-    screen_transform = find_screen(img_res)
+    if not SCREENPOINT:
+        screen_transform = find_screen(img_res)
+    else:
+        screen_transform = ask_screen_points(img_res)
     (y_image_shape, x_image_shape) = (
         screen_transform.shape[0],
         screen_transform.shape[1],
