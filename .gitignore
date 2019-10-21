@@ -1,5 +1,5 @@
 Input/*.png
 Output/label.txt
-
+.vscode
 .python-version
 .DS_Store
